@@ -1,0 +1,7 @@
+{
+  "name": "慧相 - AI面相智能分析",
+  "description": "融合AI面部生物特征识别与东方传统面相学的深度分析工具。提供面相分析、生辰八字推算、手相解读及互动社区等全方位运势探索体验。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
