@@ -1,23 +1,21 @@
-// Analysis.tsx 完整修复参考
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 初始化 API Key (确保你的 Vercel 环境变量里有这个 KEY)
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
+// 建议直接把 API Key 写死在这里测试（测试成功后再改回 process.env）
+const genAI = new GoogleGenerativeAI("AIzaSyDepCgQUymGRuBzl6tO9wDj-R67bcgND84");
 
 export const analyzeContent = async (text: string) => {
   try {
-    // 【修改重点】明确使用 gemini-1.5-flash 且不强制指定 v1beta
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash" 
-    });
+    // 显式指定使用 v1 版本，避开报错的 v1beta
+    const model = genAI.getGenerativeModel(
+      { model: "gemini-1.5-flash" }, 
+      { apiVersion: 'v1' } 
+    );
 
-    const prompt = `你是一个专业的助手。请分析以下内容：${text}`;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(text);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error("Gemini 分析失败:", error);
+    console.error("Gemini 升级版调用失败:", error);
     throw error;
   }
 };
