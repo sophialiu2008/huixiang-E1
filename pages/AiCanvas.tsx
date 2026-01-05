@@ -98,7 +98,7 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
       const genAI = new GoogleGenerativeAI(apiKey);
       // 注意：请确保您使用的模型名称正确，Gemini 2.0 图像模型通常为 'imagen-3.0-generate-001' 或类似
       // 这里保持您原有逻辑但修正 SDK 调用方式
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); 
 
       const fullPrompt = `${selectedStyle.prompt}, ${prompt}, masterpiece, 8k resolution, highly detailed, professional art, mystical atmosphere, auspicious elements`;
       

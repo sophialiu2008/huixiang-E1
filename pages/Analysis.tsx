@@ -79,7 +79,7 @@ const Analysis: React.FC<AnalysisProps> = ({ type, initialType = '综合运势',
       const genAI = new GoogleGenerativeAI(apiKey);
       
       const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash", // 修正为稳定的模型名称
+        model: "gemini-1.5-flash-latest", // 修正为稳定的模型名称
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
