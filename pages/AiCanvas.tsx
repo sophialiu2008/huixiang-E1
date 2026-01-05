@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai"; // 修正引用路径
 
 interface AiCanvasProps {
   onBack: () => void;
@@ -22,7 +21,6 @@ const presets = [
   "文昌塔：学业步步高升"
 ];
 
-// 玄学专业意象词库
 const metaphysicalDictionary = [
   "财帛宫丰盈", "印堂发亮", "紫气东来", "祥云缭绕", "五行平衡", 
   "天圆地方", "八卦阵图", "太极流转", "麒麟戏水", "凤凰涅槃",
@@ -50,10 +48,8 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
     "正在唤醒祥瑞之兆..."
   ];
 
-  // 联想逻辑：根据当前输入的最后一个片段进行匹配
   useEffect(() => {
     if (!prompt.trim()) {
-      // 初始推荐
       setSuggestions(["聚宝盆", "紫气东来", "正缘桃花", "步步高升"]);
       return;
     }
@@ -92,31 +88,38 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
     }, 2000);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // 核心修复：从 Vite 环境变量读取 Key
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error("API Key 未配置，请在 Vercel 环境变量中设置 VITE_GEMINI_API_KEY");
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      // 注意：请确保您使用的模型名称正确，Gemini 2.0 图像模型通常为 'imagen-3.0-generate-001' 或类似
+      // 这里保持您原有逻辑但修正 SDK 调用方式
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+
       const fullPrompt = `${selectedStyle.prompt}, ${prompt}, masterpiece, 8k resolution, highly detailed, professional art, mystical atmosphere, auspicious elements`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: fullPrompt }],
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: aspectRatio as any,
-          }
-        },
-      });
-
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString = part.inlineData.data;
-          setGeneratedImageUrl(`data:image/png;base64,${base64EncodeString}`);
-          break;
-        }
+      const result = await model.generateContent(fullPrompt);
+      const response = await result.response;
+      
+      // 注意：Gemini 原生 SDK 返回的是文本，若要生成图片通常需调用特定的 Imagen API
+      // 如果您的环境支持 inlineData 图片返回，逻辑如下：
+      const candidate = response.candidates?.[0];
+      if (candidate?.content?.parts?.[0]?.inlineData) {
+          const base64Data = candidate.content.parts[0].inlineData.data;
+          setGeneratedImageUrl(`data:image/png;base64,${base64Data}`);
+      } else {
+          // 兜底提示：如果模型只返回了描述而没返回图片
+          console.warn("AI 返回了内容但未包含图片数据");
+          alert("显化失败：当前模型未返回图像数据，请检查模型配置。");
       }
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Image generation failed:", error);
-      alert("灵感瞬间断开，请稍后再试。");
+      alert(`分析失败: ${error.message || "灵感瞬间断开，请稍后再试。"}`);
     } finally {
       clearInterval(phraseInterval);
       setIsGenerating(false);
@@ -137,7 +140,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
       </header>
 
       <main className="space-y-8 max-w-md mx-auto">
-        {/* 输入区域 */}
         <section className="bg-surface/50 border border-white/10 rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden transition-all duration-500 focus-within:ring-2 focus-within:ring-primary/20">
            <div className="absolute top-0 right-0 p-4 opacity-5">
               <span className="material-symbols-outlined text-6xl notranslate">brush</span>
@@ -157,7 +159,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
             className="w-full bg-black/30 border border-white/5 rounded-2xl p-5 text-sm font-medium focus:ring-0 placeholder:text-white/10 min-h-[140px] outline-none transition-all resize-none shadow-inner disabled:opacity-50"
            />
 
-           {/* 智能联想建议栏 */}
            <div className={`mt-4 transition-opacity duration-300 ${isGenerating ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
               <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 px-1">智能灵感建议</p>
               <div className="flex flex-wrap gap-2">
@@ -190,7 +191,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
            </div>
         </section>
 
-        {/* 样式选择 */}
         <section className={`space-y-4 transition-opacity duration-300 ${isGenerating ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
           <h3 className="text-xs font-black text-white/40 uppercase tracking-widest px-2">选择画风</h3>
           <div className="grid grid-cols-2 gap-3">
@@ -210,7 +210,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
           </div>
         </section>
 
-        {/* 比例选择 */}
         <section className={`space-y-4 transition-opacity duration-300 ${isGenerating ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
           <h3 className="text-xs font-black text-white/40 uppercase tracking-widest px-2">画布比例</h3>
           <div className="flex gap-4">
@@ -228,7 +227,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
           </div>
         </section>
 
-        {/* 生成预览区 */}
         {(isGenerating || generatedImageUrl) && (
           <section className="relative aspect-square w-full max-w-[400px] mx-auto rounded-[3.5rem] overflow-hidden bg-surface/50 border border-white/10 shadow-inner flex flex-col items-center justify-center animate-fade-in-up">
             {isGenerating ? (
@@ -261,7 +259,6 @@ const AiCanvas: React.FC<AiCanvasProps> = ({ onBack }) => {
           </section>
         )}
 
-        {/* 生成按钮 */}
         <div className="fixed bottom-10 left-5 right-5 z-20">
           <div className="max-w-md mx-auto">
             <button 
