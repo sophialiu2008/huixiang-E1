@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState, useRef } from 'react';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai"; // 修正引用和类型
 import { AnalysisResult, ScanType } from '../types';
 
 interface AnalysisProps {
@@ -71,89 +70,76 @@ const Analysis: React.FC<AnalysisProps> = ({ type, initialType = '综合运势',
 
   const runAIAnalysis = async (base64Image: string) => {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // 核心修复：使用 Vite 环境变量前缀 VITE_
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("VITE_GEMINI_API_KEY is not defined in environment variables");
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
       
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          {
-            parts: [
-              { inlineData: { data: base64Image.split(',')[1], mimeType: "image/jpeg" } },
-              { text: `作为一个专业的东方传统面相分析大师，请深度分析这张人脸。本次分析的主题是：${activeAnalysisType}。
-              
-              返回 JSON 格式报告，结构如下：
-              1. score: 1-100的综合评分。
-              2. description: 核心总结（约60字）。
-              3. radarData: 五个维度的分数（事业、财运、健康、情感、人际）。
-              4. sanTing: 上庭、中庭、下庭的比例和评分。
-              5. advices: 三条具体的开运建议，每条包含icon、title、tag、desc。
-              6. citations: 引用经典名著（如《麻衣相法》、《柳庄相法》）。
-              7. fortuneTrend: 从20岁到70岁的运势曲线数据。
-              
-              返回语言必须为中文。` }
-            ]
-          }
-        ],
-        config: {
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash", // 修正为稳定的模型名称
+        generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-              score: { type: Type.NUMBER },
-              description: { type: Type.STRING },
+              score: { type: SchemaType.NUMBER },
+              description: { type: SchemaType.STRING },
               radarData: {
-                type: Type.ARRAY,
+                type: SchemaType.ARRAY,
                 items: {
-                  type: Type.OBJECT,
+                  type: SchemaType.OBJECT,
                   properties: {
-                    subject: { type: Type.STRING },
-                    A: { type: Type.NUMBER },
-                    fullMark: { type: Type.NUMBER }
+                    subject: { type: SchemaType.STRING },
+                    A: { type: SchemaType.NUMBER },
+                    fullMark: { type: SchemaType.NUMBER }
                   }
                 }
               },
               sanTing: {
-                type: Type.ARRAY,
+                type: SchemaType.ARRAY,
                 items: {
-                  type: Type.OBJECT,
+                  type: SchemaType.OBJECT,
                   properties: {
-                    label: { type: Type.STRING },
-                    value: { type: Type.NUMBER },
-                    percent: { type: Type.NUMBER },
-                    color: { type: Type.STRING }
+                    label: { type: SchemaType.STRING },
+                    value: { type: SchemaType.NUMBER },
+                    percent: { type: SchemaType.NUMBER },
+                    color: { type: SchemaType.STRING }
                   }
                 }
               },
               advices: {
-                type: Type.ARRAY,
+                type: SchemaType.ARRAY,
                 items: {
-                  type: Type.OBJECT,
+                  type: SchemaType.OBJECT,
                   properties: {
-                    icon: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    tag: { type: Type.STRING },
-                    desc: { type: Type.STRING }
+                    icon: { type: SchemaType.STRING },
+                    title: { type: SchemaType.STRING },
+                    tag: { type: SchemaType.STRING },
+                    desc: { type: SchemaType.STRING }
                   }
                 }
               },
               citations: {
-                type: Type.ARRAY,
+                type: SchemaType.ARRAY,
                 items: {
-                  type: Type.OBJECT,
+                  type: SchemaType.OBJECT,
                   properties: {
-                    source: { type: Type.STRING },
-                    quote: { type: Type.STRING },
-                    interpretation: { type: Type.STRING }
+                    source: { type: SchemaType.STRING },
+                    quote: { type: SchemaType.STRING },
+                    interpretation: { type: SchemaType.STRING }
                   }
                 }
               },
               fortuneTrend: {
-                type: Type.ARRAY,
+                type: SchemaType.ARRAY,
                 items: {
-                  type: Type.OBJECT,
+                  type: SchemaType.OBJECT,
                   properties: {
-                    age: { type: Type.STRING },
-                    score: { type: Type.NUMBER }
+                    age: { type: SchemaType.STRING },
+                    score: { type: SchemaType.NUMBER }
                   }
                 }
               }
@@ -161,14 +147,24 @@ const Analysis: React.FC<AnalysisProps> = ({ type, initialType = '综合运势',
           }
         }
       });
+      
+      const prompt = `作为一个专业的东方传统面相分析大师，请深度分析这张人脸。本次分析的主题是：${activeAnalysisType}。
+      返回 JSON 格式报告，包含综合评分(score)、核心总结(description)、五维雷达图数据(radarData)、三庭比例(sanTing)、开运建议(advices)、典籍引用(citations)以及运势曲线(fortuneTrend)。返回语言必须为中文。`;
 
-      const result = JSON.parse(response.text);
-      onScanComplete({ ...result, type });
-    } catch (err) {
+      const result = await model.generateContent([
+        { text: prompt },
+        { inlineData: { data: base64Image.split(',')[1], mimeType: "image/jpeg" } }
+      ]);
+
+      const textResult = result.response.text(); // 修正 text 获取方式
+      const parsedData = JSON.parse(textResult);
+      onScanComplete({ ...parsedData, type });
+
+    } catch (err: any) {
       console.error("AI Analysis failed:", err);
       setIsProcessing(false);
       setScanning(false);
-      alert("分析失败，请稍后重试。");
+      alert(`分析失败: ${err.message || "请稍后重试"}`);
     }
   };
 
