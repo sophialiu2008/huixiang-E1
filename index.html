@@ -13,7 +13,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
-    
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -27,17 +26,11 @@
                         secondary: "#ff8c00",
                         background: "#120812",
                         surface: "#1e0f1e",
-                        "surface-lighter": "#2a162a",
-                        glass: "rgba(255, 255, 255, 0.03)",
-                        "glass-border": "rgba(255, 255, 255, 0.08)"
-                    },
-                    fontFamily: {
-                        display: ["Manrope", "Noto Sans SC", "sans-serif"],
-                        body: ["Manrope", "Noto Sans SC", "sans-serif"]
+                        glass: "rgba(255, 255, 255, 0.03)"
                     },
                     backgroundImage: {
                         'mystic-gradient': 'linear-gradient(135deg, #a855f7 0%, #ec13ec 50%, #f97316 100%)',
-                        'glass-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                        'bg-glow': 'radial-gradient(circle, rgba(236,19,236,0.15) 0%, rgba(18,8,18,0) 70%)'
                     }
                 }
             }
@@ -45,52 +38,16 @@
     </script>
     
     <style>
-        /* 隐藏滚动条 */
         * { -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* 基础动画 */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        /* 呼吸光效 */
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.4; filter: blur(40px); }
-            50% { opacity: 0.6; filter: blur(60px); }
-        }
-        .bg-glow {
-            animation: pulseGlow 8s ease-in-out infinite;
-        }
-
-        /* 防止图标字体回退为文字 */
-        .material-symbols-outlined {
-            font-display: block;
-            user-select: none;
-            word-wrap: normal;
-            white-space: nowrap;
-        }
-
-        /* 解决 iOS 底部安全区域 */
-        .pb-safe {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* 2. 补充：修复图表宽度警告的 CSS 设置 */
-        #root {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        /* 强制让图表容器有高度，防止报错 */
-        .recharts-responsive-container {
-            min-height: 250px; 
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+        
+        /* 修复图表在初始化时高度为0的问题 */
+        .recharts-responsive-container { min-height: 250px; }
     </style>
 
     <script type="importmap">
@@ -100,20 +57,14 @@
         "react-dom": "https://esm.sh/react-dom@19.0.0",
         "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
         "recharts": "https://esm.sh/recharts@2.15.0",
-        "@google/genai": "https://esm.sh/@google/genai@1.2.0"
+        "@google/genai": "https://esm.sh/@google/genai@0.21.0"
       }
     }
     </script>
-
-    </head>
-<body class="bg-background text-white font-body antialiased selection:bg-primary/30 selection:text-white overflow-x-hidden">
-    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary/20 blur-[80px] bg-glow"></div>
-        <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-secondary/10 blur-[80px] bg-glow" style="animation-delay: -2s;"></div>
-    </div>
-
+</head>
+<body class="bg-background text-white antialiased overflow-x-hidden">
     <div id="root"></div>
 
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
