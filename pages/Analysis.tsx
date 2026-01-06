@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // 建议直接把 API Key 写死在这里测试（测试成功后再改回 process.env）
-const genAI = new GoogleGenerativeAI("AIzaSyDepCgQUymGRuBzl6tO9wDj-R67bcgND84");
+const genAI = new GoogleGenerativeAI("AIzaSyC6IbNwxWKUmhAJ7vxh0K87Pejq0ATQpyY");
 
 export const analyzeContent = async (text: string) => {
   try {
