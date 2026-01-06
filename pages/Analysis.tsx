@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/genai";
 import { ScanType, AnalysisResult } from "./types.ts";
 
 // 建议在 Vercel 环境变量中配置此 KEY
-const API_KEY = "你的_API_KEY"; 
+const API_KEY = "AIzaSyC6IbNwxWKUmhAJ7vxh0K87Pejq0ATQpyY"; 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export const analyzeFaceImage = async (imageBase64: string, scanType: ScanType = ScanType.FACE): Promise<AnalysisResult | string> => {
