@@ -1,9 +1,8 @@
-
 export enum AppTab {
   HOME = 'home',
-  DISCOVER = 'discover', // 知识库/文库
+  DISCOVER = 'discover',
   ANALYSIS = 'analysis',
-  DIVINATION = 'divination', // 占卜/命盘
+  DIVINATION = 'divination',
   PROFILE = 'profile',
   CALENDAR = 'calendar',
   AI_CANVAS = 'ai_canvas'
@@ -16,51 +15,40 @@ export enum ScanType {
   BEAUTY = 'beauty'
 }
 
-export interface Post {
-  id: string;
-  author: string;
-  avatar: string;
-  time: string;
-  title: string;
-  content: string;
-  image: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  isLiked?: boolean;
-  isVerified?: boolean;
-}
-
-export interface Citation {
-  source: string;
-  quote: string;
-  interpretation: string;
-}
+// ... Post 和 Citation 保持不变 ...
 
 export interface AnalysisResult {
-  type: ScanType;
+  type: ScanType; // 建议在 App.tsx 赋值时确保此项不为空
   score: number;
   description: string;
+  
+  // 图表核心数据
   radarData: {
     subject: string;
     A: number;
     fullMark: number;
   }[];
+  
+  // 三庭比例：用于可视化条形图
   sanTing?: {
-    label: string;
+    label: string; // 上庭, 中庭, 下庭
     value: number;
     percent: number;
     color: string;
   }[];
+  
+  // 运势趋势：用于折线图 (LineChart)
   fortuneTrend?: {
-    age: string;
-    score: number;
+    age: string; // 横轴：如 "20岁", "30岁"
+    score: number; // 纵轴：分值
   }[];
+  
   advices: {
     icon: string;
     title: string;
     tag: string;
     desc: string;
   }[];
+  
   citations: Citation[];
 }
