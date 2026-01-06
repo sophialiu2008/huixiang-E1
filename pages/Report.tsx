@@ -1,3 +1,4 @@
+import { AnalysisResult } from '../types'; // 去掉 .ts 后缀，让构建工具自动识别
 import React, { useEffect } from 'react';
 import { 
   Radar, 
